@@ -2,7 +2,7 @@
  .SYNOPSIS
     Notes sur la gestion des GPO depuis Powershell
  .DESCRIPTION
-    Notes sur la gestion des GPO depuis Powershell
+    Notes sur la gestion des GPO depuis Powershell et précisement les backups
 
  .NOTES 
   voir :
@@ -27,10 +27,18 @@
     https://evotec.xyz/the-only-command-you-will-ever-need-to-understand-and-fix-your-group-policies-gpo/ 
 
 #>
+[CmdletBinding()]
+param (
+    [Parameter()][String]$Domain=(Get-WmiObject win32_computersystem).Domain 
+)
 
 #region Générer HTML un rapport unitaire sur domaine Précis
-$Domain='asm.awd.pole-emploi.intra'
-$Domain='xitam.unedic.fr'
+
+# récupération du domaine courant de l'utilisateur
+$Domain=$env:userdomain   
+# récupération du domaine courant du serveur courant
+$Domain=(Get-WmiObject win32_computersystem).Domain 
+
 $LogDir='d:\donapp\xinvtr\p00\html\rapports'
 $LogName='GPOReport-{0}.html' -f $Domain.split('.')[0]
 $LogPath=join-path $LogDir $LogName
@@ -60,7 +68,7 @@ $SBRapportGPOs={
     }     # fin de la boucle 
     Write-Host ('Rapports GPO disponibles dans [{0}]' -f $DossierRapport) -ForegroundColor Yellow
 }   # $SBRapportGPOs
-# & $SBRapportGPOs
+& $SBRapportGPOs
     
     # si besoin robocopy $DossierRapport \\swz9i5.asp.awp.pole-emploi.intra\d$\donapp\xinvtr\p00\html\rapports *.html
 #endregion Générer HTML un rapport unitaire sur les domaines POC
@@ -128,9 +136,7 @@ foreach ($Save in $Saves) {
 
 #region backup des GPO du domaine courant en powershell
 #$Dossier='D:\sasech\Backup\All-GPO'
-$Domain='asm.awd.pole-emploi.intra'
-$Domain='asp.awp.pole-emploi.intra'
-$Domain='as0.aw0.pole-emploi.intra'
+$Domain=(Get-WmiObject win32_computersystem).Domain 
 
 $SavDir='d:\donapp\xmadds\P00\sav\GPO'
 if (-not (test-path $SavDir)) { new-item -path $SavDir -itemType Directory}
@@ -146,10 +152,6 @@ get-Gpo -all -domain $Domain | Backup-gpo -Path $DossierCible -domain $Domain
 $SavDir='d:\donapp\xmadds\P00\sav\GPO'
 if (-not (test-path $SavDir)) { New-Item -Path $SavDir -ItemType Directory}
 $Param=@{} 
-#$Param['Server']='anpe.fr'
-#$Param['Server']='ame.pole-emploi.intra'
-#$Param['Server']='abep.pole-emploi.intra'
-#$Param['Server']='itam.unedic.fr'
 $ForestInfos=get-adForest @Param
 $Foret=($ForestInfos).name
 foreach ($Domain in $ForestInfos.Domains) { 
