@@ -15,7 +15,6 @@ $Sb={
     $Message='Désactiver le lancement du gestionnaire de serveurs'
     Write-Host $Message -ForegroundColor Yellow
     New-ItemProperty -Path HKCU:\Software\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon -PropertyType DWORD -Value "0x1" –Force
-    $Res=get-ItemProperty -Path HKCU:\Software\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon
 }
 if ($res.DoNotOpenServerManagerAtLogon -ne 1) { & $SB } else {
     $Message='Lancement du gestionnaire de serveurs : Désactivé'
